@@ -52,7 +52,7 @@ def delete_request(token, slackfile):
 
     if DEBUG:
         # TODO: Look out for HTTP 429 Too Many Requests responses and sleep for Retry-After seconds with a fallback to 1 second
-        if resp.status_code == 429:
+        if resp_delete.status_code == 429:
             import pdb; pdb.set_trace()
 
     if resp_delete.ok and resp_delete.json()['ok']:
