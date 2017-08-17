@@ -1,6 +1,6 @@
 # SlackFileCleanup
 
-Deletes lack files older than `n_days_ago`
+Deletes Slack files older than `n_days_ago`
 
 By default files to be deleted are written to `files_to_delete.csv`, if the delete
 flag is passed, then the files will also be deleted from slack.
@@ -11,7 +11,7 @@ flag is passed, then the files will also be deleted from slack.
 python slack_file_cleanup.py -t <your-secren-token> -d
 ```
 
-You can do a dry run by omiting the `-d` flag.
+You can do a dry run by omitting the `-d` flag.
 
 Deleted files are logged to `files_to_delete.csv` by default, this can be turned off by adding the flag `--logging_off`.
 
