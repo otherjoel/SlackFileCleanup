@@ -1,5 +1,7 @@
 # SlackFileCleanup
 
+Forked from  https://gitlab.com/tomleo/SlackFileCleanup/
+
 Deletes Slack files older than `n_days_ago`
 
 By default files to be deleted are written to `files_to_delete.csv`, if the delete
