@@ -18,24 +18,24 @@ def sizeof_fmt(num, suffix='B'):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
-def get_slack_file(f):
+def get_slack_file(f, channels):
     filename = f[u'name'].encode('utf-8')
     url = f[u'permalink']
     created = datetime.datetime.fromtimestamp(float(f[u'created']))
     user = f[u'user'].encode('utf-8')
     slack_id = f[u'id']
     size = f[u'size'] # filesize in bytes
-    channels = ','.join(f[u'channels'])
+    file_channels = ','.join([channels[fc] for fc in f[u'channels']])
     return SlackFile(id=slack_id,
                      name=filename,
                      permalink=url,
                      created=created,
                      user=user,
                      size=size,
-                     channels=channels)
+                     channels=file_channels)
 
-def get_slack_files(files):
-    return [get_slack_file(f) for f in files]
+def get_slack_files(files, channels):
+    return [get_slack_file(f, channels) for f in files]
 
 
 def handle_logging(log_name, files_to_delete):
@@ -90,6 +90,25 @@ def list_request(token, upperbound, page=1):
     print "%s: %s" % (resp.status_code, resp.body)
     return None  # TODO: raise error instead of handling None case?
 
+def channel_list_request(token):
+    # See https://api.slack.com/methods/channels.list
+    channels_list_url = 'https://slack.com/api/channels.list'
+
+    data = {
+        'token': token
+    }
+    resp = requests.post(channels_list_url, data=data)
+
+    if DEBUG:
+        # TODO: Look out for HTTP 429 Too Many Requests responses and sleep for Retry-After seconds with a fallback to 1 second
+        if resp.status_code == 429:
+            import pdb; pdb.set_trace()
+
+    if resp.ok and resp.json()['ok']:
+        return resp.json()
+    print "%s: %s" % (resp.status_code, resp.body)
+    return None  # TODO: raise error instead of handling None case?
+
 def filter_slack_files(slack_files, min_file_size):
     if DEBUG:
         upload_total = 0
@@ -104,12 +123,18 @@ def get_files_to_delete(token, n_days_ago, min_file_size=None):
     resp = list_request(token, upperbound)
     if not resp:
         return []
+        
+    channel_resp = channel_list_request(token)
+    if not channel_resp:
+        return []
+    
+    channels = { c[u'id'] : c[u'name'] for c in channel_resp['channels'] }
 
-    slack_files = get_slack_files(resp['files'])  # asdf
+    slack_files = get_slack_files(resp['files'], channels)  # asdf
     if resp['paging']['pages'] > 1:
         for page in range(resp['paging']['page']+1, resp['paging']['pages']+1):
             _resp = list_request(token, upperbound, page=page)
-            slack_files.extend(get_slack_files(_resp['files']))
+            slack_files.extend(get_slack_files(_resp['files'], channels ))
 
     if DEBUG:
         print "Total files to delete %s" % len(slack_files)
@@ -120,6 +145,18 @@ def get_files_to_delete(token, n_days_ago, min_file_size=None):
         print "Filtered files to delete %s" % len(slack_files)
 
     return slack_files
+
+# For debug only
+def print_channel_list(token):
+    resp = channel_list_request(token)
+    if not resp:
+        print "No response!?"
+    
+    slack_channels = { c[u'id'] : c[u'name'] for c in resp['channels'] }
+    # print "Next cursor: %s" % resp['response_metadata']['next_cursor']
+    
+    for channel_id in slack_channels.keys():
+        print "[%s] %s" % (channel_id, slack_channels[channel_id])
 
 def main(token, delete=False, n_days_ago=30, logging_off=False, min_file_size=None):
     """
@@ -135,6 +172,8 @@ def main(token, delete=False, n_days_ago=30, logging_off=False, min_file_size=No
         print "logging_off %s" % logging_off
         print "min_file_size %s" % min_file_size
 
+    print_channel_list(token)
+    
     files_to_delete = get_files_to_delete(token, n_days_ago, min_file_size)
 
     if not logging_off:
