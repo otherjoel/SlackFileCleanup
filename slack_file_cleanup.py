@@ -18,11 +18,11 @@ def sizeof_fmt(num, suffix='B'):
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
-def get_slack_file(f, channels):
+def get_slack_file(f, channels, users):
     filename = f[u'name'].encode('utf-8')
     url = f[u'permalink']
     created = datetime.datetime.fromtimestamp(float(f[u'created']))
-    user = f[u'user'].encode('utf-8')
+    user = users[f[u'user']].encode('utf-8')
     slack_id = f[u'id']
     size = f[u'size'] # filesize in bytes
     file_channels = ','.join([channels[fc] for fc in f[u'channels']])
@@ -36,8 +36,8 @@ def get_slack_file(f, channels):
                      filetype=filetype,
                      channels=file_channels)
 
-def get_slack_files(files, channels):
-    return [get_slack_file(f, channels) for f in files]
+def get_slack_files(files, channel_list, user_list):
+    return [get_slack_file(f, channel_list, user_list) for f in files]
 
 
 def handle_logging(log_name, files_to_delete):
@@ -92,14 +92,18 @@ def list_request(token, upperbound, page=1):
     print "%s: %s" % (resp.status_code, resp.body)
     return None  # TODO: raise error instead of handling None case?
 
-def channel_list_request(token):
+def other_list_request(token,type):
     # See https://api.slack.com/methods/channels.list
-    channels_list_url = 'https://slack.com/api/channels.list'
+    # and https://api.slack.com/methods/users.list
+    if not type in ['channels', 'users']:
+        return None
+        
+    list_url = "https://slack.com/api/%s.list" % type
 
     data = {
         'token': token
     }
-    resp = requests.post(channels_list_url, data=data)
+    resp = requests.post(list_url, data=data)
 
     if DEBUG:
         # TODO: Look out for HTTP 429 Too Many Requests responses and sleep for Retry-After seconds with a fallback to 1 second
@@ -126,17 +130,23 @@ def get_files_to_delete(token, n_days_ago, min_file_size=None):
     if not resp:
         return []
         
-    channel_resp = channel_list_request(token)
+    channel_resp = other_list_request(token, 'channels')
     if not channel_resp:
         return []
     
+    user_resp = other_list_request(token, 'users')
+    if not user_resp:
+        return[]
+    
+    # Construct dictionaries mapping user and channel IDs to their names
     channels = { c[u'id'] : c[u'name'] for c in channel_resp['channels'] }
+    users = { user[u'id'] : user[u'name'] for user in user_resp['members'] }
 
-    slack_files = get_slack_files(resp['files'], channels)  # asdf
+    slack_files = get_slack_files(resp['files'], channels, users)  # asdf
     if resp['paging']['pages'] > 1:
         for page in range(resp['paging']['page']+1, resp['paging']['pages']+1):
             _resp = list_request(token, upperbound, page=page)
-            slack_files.extend(get_slack_files(_resp['files'], channels ))
+            slack_files.extend(get_slack_files(_resp['files'], channels, users))
 
     if DEBUG:
         print "Total files to delete %s" % len(slack_files)
@@ -150,7 +160,7 @@ def get_files_to_delete(token, n_days_ago, min_file_size=None):
 
 # For debug only
 def print_channel_list(token):
-    resp = channel_list_request(token)
+    resp = other_list_request(token,'channels')
     if not resp:
         print "No response!?"
     
