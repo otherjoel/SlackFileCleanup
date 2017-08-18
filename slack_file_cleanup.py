@@ -5,11 +5,23 @@ import datetime
 from collections import namedtuple
 
 import requests
+import os.path
 
 DEBUG = True
 MIN = 60
 SLACK_FILE_ATTRIBUTES = ['id', 'name', 'permalink', 'created', 'user', 'size', 'channels', 'filetype']
 SlackFile = namedtuple('SlackFile', SLACK_FILE_ATTRIBUTES)
+
+def filename_string(file):
+    datestring = file.created.strftime("%Y-%m-%d")
+    file_ext = os.path.splitext(file.name)[1]
+    
+    # e.g. 2017-07-04-joel_general+random_f633m1hfa.jpg
+    return "%s-%s_%s_%s%s" % (datestring, 
+                            file.user,
+                            file.channels,
+                            file.id.lower(),
+                            file_ext)
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
@@ -25,7 +37,7 @@ def get_slack_file(f, channels, users):
     user = users[f[u'user']].encode('utf-8')
     slack_id = f[u'id']
     size = f[u'size'] # filesize in bytes
-    file_channels = ','.join([channels[fc] for fc in f[u'channels']])
+    file_channels = '+'.join([channels[fc] for fc in f[u'channels']])
     filetype = f[u'filetype']
     return SlackFile(id=slack_id,
                      name=filename,
@@ -188,6 +200,10 @@ def main(token, delete=False, n_days_ago=30, logging_off=False, min_file_size=No
     
     files_to_delete = get_files_to_delete(token, n_days_ago, min_file_size)
 
+    if DEBUG:
+        for file in files_to_delete:
+            print filename_string(file)
+    
     if not logging_off:
         handle_logging('files_to_delete.csv', files_to_delete)
 
