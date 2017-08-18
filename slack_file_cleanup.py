@@ -8,7 +8,7 @@ import requests
 
 DEBUG = True
 MIN = 60
-SLACK_FILE_ATTRIBUTES = ['id', 'name', 'permalink', 'created', 'user', 'size', 'channels']
+SLACK_FILE_ATTRIBUTES = ['id', 'name', 'permalink', 'created', 'user', 'size', 'channels', 'filetype']
 SlackFile = namedtuple('SlackFile', SLACK_FILE_ATTRIBUTES)
 
 def sizeof_fmt(num, suffix='B'):
@@ -26,12 +26,14 @@ def get_slack_file(f, channels):
     slack_id = f[u'id']
     size = f[u'size'] # filesize in bytes
     file_channels = ','.join([channels[fc] for fc in f[u'channels']])
+    filetype = f[u'filetype']
     return SlackFile(id=slack_id,
                      name=filename,
                      permalink=url,
                      created=created,
                      user=user,
                      size=size,
+                     filetype=filetype,
                      channels=file_channels)
 
 def get_slack_files(files, channels):
