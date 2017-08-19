@@ -185,7 +185,34 @@ def print_channel_list(token):
     for channel_id in slack_channels.keys():
         print "[%s] %s" % (channel_id, slack_channels[channel_id])
 
-def main(token, delete=False, n_days_ago=30, logging_off=False, min_file_size=None):
+def assign_file_actions(files, channels_noarchive):
+    actionable_types = ['jpg', 'jpeg', 'png', 'mov', 'mp4']
+    
+    channels_not_to_archive = channels_noarchive.split(',') if channels_noarchive else []
+    examined_files = []
+    
+    for file in files:
+        file_channels = file.channels.split('+')
+        dont_archive = set(file_channels).issubset(channels_not_to_archive)
+        
+        if file.filetype in actionable_types:
+            if not file.channels:
+                # file was shared in a private channel/DM
+                # you may want this to be 'delete', but probably not 'archive'
+                file = file._replace(action='ignore')
+            elif dont_archive:
+                file = file._replace(action='delete')
+            else:
+                file = file._replace(action='archive,delete')
+        else:
+            file = file._replace(action='ignore')
+        
+        examined_files.append(file)
+        
+    return examined_files
+
+def main(token, delete=False, n_days_ago=30, logging_off=False, \
+         min_file_size=None, channels_noarchive=""):
     """
     Deletes lack files older than `n_days_ago`
 
@@ -198,10 +225,12 @@ def main(token, delete=False, n_days_ago=30, logging_off=False, min_file_size=No
         print "n_days_ago %s" % n_days_ago
         print "logging_off %s" % logging_off
         print "min_file_size %s" % min_file_size
+        print "channels_noarchive %s" % channels_noarchive
 
     print_channel_list(token)
     
     files_to_delete = get_files_to_delete(token, n_days_ago, min_file_size)
+    files_to_delete = assign_file_actions(files_to_delete, channels_noarchive)
 
     if DEBUG:
         for file in files_to_delete:
