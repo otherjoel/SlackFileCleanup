@@ -9,7 +9,9 @@ import os.path
 
 DEBUG = True
 MIN = 60
-SLACK_FILE_ATTRIBUTES = ['id', 'name', 'permalink', 'created', 'user', 'size', 'channels', 'filetype']
+SLACK_FILE_ATTRIBUTES = ['id',       'name',     'permalink', 
+                         'created',  'user',     'size', 
+                         'channels', 'filetype', 'action']
 SlackFile = namedtuple('SlackFile', SLACK_FILE_ATTRIBUTES)
 
 def filename_string(file):
@@ -46,6 +48,7 @@ def get_slack_file(f, channels, users):
                      user=user,
                      size=size,
                      filetype=filetype,
+                     action='',
                      channels=file_channels)
 
 def get_slack_files(files, channel_list, user_list):
