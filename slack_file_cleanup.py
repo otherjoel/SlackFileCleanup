@@ -93,7 +93,7 @@ def list_request(token, upperbound, page=1):
     data = {
         'token': token,
         'ts_to': ts_upperbound,
-        'page': 1
+        'page': page
     }
     resp = requests.post(files_list_url, data=data)
 
