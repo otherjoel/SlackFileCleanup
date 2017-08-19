@@ -34,7 +34,7 @@ def sizeof_fmt(num, suffix='B'):
 
 def get_slack_file(f, channels, users):
     filename = f[u'name'].encode('utf-8')
-    url = f[u'permalink']
+    url = f[u'url_private']
     created = datetime.datetime.fromtimestamp(float(f[u'created']))
     user = users[f[u'user']].encode('utf-8')
     slack_id = f[u'id']
@@ -211,6 +211,9 @@ def assign_file_actions(files, channels_noarchive):
         
     return examined_files
 
+def count_action(files, action):
+    return len([f for f in files if action in f.action])
+
 def main(token, delete=False, n_days_ago=30, logging_off=False, \
          min_file_size=None, channels_noarchive=""):
     """
@@ -235,7 +238,11 @@ def main(token, delete=False, n_days_ago=30, logging_off=False, \
     if DEBUG:
         for file in files_to_delete:
             print filename_string(file)
-    
+        
+        print "File to archive: %s" % count_action(files_to_delete, 'archive')
+        print "Files to delete: %s" % count_action(files_to_delete, 'delete')
+        print "Files to ignore: %s" % count_action(files_to_delete, 'ignore')
+        
     if not logging_off:
         handle_logging('files_to_delete.csv', files_to_delete)
 
