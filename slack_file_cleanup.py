@@ -2,6 +2,7 @@ import csv
 import time
 import calendar
 import datetime
+from urllib2 import Request, urlopen
 from collections import namedtuple
 
 import requests
@@ -213,6 +214,18 @@ def assign_file_actions(files, channels_noarchive):
 
 def count_action(files, action):
     return len([f for f in files if action in f.action])
+
+def download_slack_file(file, token):
+    filename = filename_string(file)
+    
+    with open(filename, 'wb') as handle:
+        download_request = Request(file.permalink)
+        download_request.add_header('Authorization', 'Bearer %s' % token)
+        
+        download_response = urlopen(download_request)
+        handle.write(download_response.read())
+    
+    return True 
 
 def main(token, delete=False, n_days_ago=30, logging_off=False, \
          min_file_size=None, channels_noarchive=""):
