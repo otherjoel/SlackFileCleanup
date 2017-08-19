@@ -217,12 +217,13 @@ def main(token, delete=False, n_days_ago=30, logging_off=False, min_file_size=No
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser("Bulk delete files older than 30 days")
+    parser = argparse.ArgumentParser("Bulk archive/delete files older than 30 days")
     parser.add_argument('-t', '--token', type=str, help="Oauth token for Slack RESTfull API")
-    parser.add_argument('-d', '--delete', action='store_true', help="Confirm file deletion (this cannot be undone)")
+    parser.add_argument('-d', '--delete', action='store_true', help="Confirm file archive/deletion (this cannot be undone)")
     parser.add_argument('-n', '--n_days_ago', type=int, help="Delete files older than n days ago (default = 30)", default=30)
     parser.add_argument('-l', '--logging_off', action='store_true', help="Turn off CSV logging of deleted files")
     parser.add_argument('-s', '--min_file_size', type=int, help="Min filesize (in bytes) a file must be to get deleted")
+    parser.add_argument('-c', '--channels_noarchive', type=str, help="Channels to skip archiving (delete only)")
     main(**vars(parser.parse_args()))
 
 
