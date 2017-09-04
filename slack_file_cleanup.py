@@ -262,10 +262,9 @@ def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
         handle_logging('files_to_act_on.csv', files_to_act_on)
 
     if do_actions:
-        archive_path = os.path.dirname(DOWNLOAD_DIR)
-        if not os.path.exists(archive_path):
-            os.mkdir(archive_path)
-        
+        if not os.path.exists(DOWNLOAD_DIR):
+            os.mkdir(DOWNLOAD_DIR)
+                
         for slackfile in files_to_act_on:
             if 'archive' in file.action:
                 download_slack_file(file, token)
