@@ -6,10 +6,11 @@ from urllib2 import Request, urlopen
 from collections import namedtuple
 
 import requests
-import os.path
+import os
 
 DEBUG = True
 MIN = 60
+DOWNLOAD_DIR = 'archive'
 SLACK_FILE_ATTRIBUTES = ['id',       'name',     'permalink', 
                          'created',  'user',     'size', 
                          'channels', 'filetype', 'action']
@@ -216,7 +217,7 @@ def count_action(files, action):
     return len([f for f in files if action in f.action])
 
 def download_slack_file(file, token):
-    filename = filename_string(file)
+    filename = os.path.join(DOWNLOAD_DIR, filename_string(file))
     
     with open(filename, 'wb') as handle:
         download_request = Request(file.permalink)
@@ -260,6 +261,10 @@ def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
         handle_logging('files_to_act_on.csv', files_to_act_on)
 
     if do_actions:
+        archive_path = os.path.dirname(DOWNLOAD_DIR)
+        if not os.path.exists(archive_path):
+            os.mkdir(archive_path)
+        
         for slackfile in files_to_act_on:
             if 'archive' in file.action:
                 download_slack_file(file, token)
