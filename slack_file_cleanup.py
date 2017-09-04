@@ -56,11 +56,11 @@ def get_slack_files(files, channel_list, user_list):
     return [get_slack_file(f, channel_list, user_list) for f in files]
 
 
-def handle_logging(log_name, files_to_delete):
+def handle_logging(log_name, files_to_act_on):
     with open(log_name, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=SLACK_FILE_ATTRIBUTES)
         writer.writeheader()
-        for slackfile in files_to_delete:
+        for slackfile in files_to_act_on:
             writer.writerow(slackfile._asdict())
 
 def delete_request(token, slackfile):
@@ -140,7 +140,7 @@ def filter_slack_files(slack_files, min_file_size):
         print "Filesize %s" % sizeof_fmt(upload_total)
     return [slackfile for slackfile in slack_files if slackfile.size > min_file_size]
 
-def get_files_to_delete(token, n_days_ago, min_file_size=None):
+def get_files_to_act_on(token, n_days_ago, min_file_size=None):
     upperbound = datetime.datetime.now() - datetime.timedelta(days=n_days_ago)
     resp = list_request(token, upperbound)
     if not resp:
@@ -225,14 +225,14 @@ def download_slack_file(file, token):
         download_response = urlopen(download_request)
         handle.write(download_response.read())
     
-    return True 
+    return True
 
 def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
          min_file_size=None, channels_noarchive=""):
     """
     Deletes lack files older than `n_days_ago`
 
-    By default files to be deleted are written to `files_to_delete.csv`, if the delete
+    By default files to be deleted are written to `files_to_act_on.csv`, if the delete
     flag is passed, then the files will also be deleted from slack.
     """
 
@@ -245,24 +245,26 @@ def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
 
     print_channel_list(token)
     
-    files_to_delete = get_files_to_delete(token, n_days_ago, min_file_size)
-    files_to_delete = assign_file_actions(files_to_delete, channels_noarchive)
+    files_to_act_on = get_files_to_act_on(token, n_days_ago, min_file_size)
+    files_to_act_on = assign_file_actions(files_to_act_on, channels_noarchive)
 
     if DEBUG:
-        for file in files_to_delete:
+        for file in files_to_act_on:
             print filename_string(file)
         
-        print "File to archive: %s" % count_action(files_to_delete, 'archive')
-        print "Files to delete: %s" % count_action(files_to_delete, 'delete')
-        print "Files to ignore: %s" % count_action(files_to_delete, 'ignore')
+        print "File to archive: %s" % count_action(files_to_act_on, 'archive')
+        print "Files to delete: %s" % count_action(files_to_act_on, 'delete')
+        print "Files to ignore: %s" % count_action(files_to_act_on, 'ignore')
         
     if not logging_off:
-        handle_logging('files_to_delete.csv', files_to_delete)
+        handle_logging('files_to_act_on.csv', files_to_act_on)
 
     if do_actions:
-        for slackfile in files_to_delete:
-            delete_request(token, slackfile)
-
+        for slackfile in files_to_act_on:
+            if 'archive' in file.action:
+                download_slack_file(file, token)
+            if 'delete' in file.action:
+                delete_request(token, slackfile)
 
 if __name__ == '__main__':
     import argparse
