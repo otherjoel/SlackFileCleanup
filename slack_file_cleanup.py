@@ -272,9 +272,9 @@ def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
             os.mkdir(DOWNLOAD_DIR)
                 
         for slackfile in files_to_act_on:
-            if 'archive' in file.action:
-                download_slack_file(file, token)
-            if 'delete' in file.action:
+            if 'archive' in slackfile.action:
+                download_slack_file(slackfile, token)
+            if 'delete' in slackfile.action:
                 delete_request(token, slackfile)
 
 if __name__ == '__main__':
