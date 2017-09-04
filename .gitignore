@@ -1,2 +1,2 @@
-*.swp
-files_to_delete.csv
+*.csv
+*.json
