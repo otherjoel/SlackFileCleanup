@@ -227,7 +227,7 @@ def download_slack_file(file, token):
     
     return True 
 
-def main(token, delete=False, n_days_ago=30, logging_off=False, \
+def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
          min_file_size=None, channels_noarchive=""):
     """
     Deletes lack files older than `n_days_ago`
@@ -237,7 +237,7 @@ def main(token, delete=False, n_days_ago=30, logging_off=False, \
     """
 
     if DEBUG:
-        print "delete %s" % delete
+        print "do_actions %s" % do_actions
         print "n_days_ago %s" % n_days_ago
         print "logging_off %s" % logging_off
         print "min_file_size %s" % min_file_size
@@ -259,7 +259,7 @@ def main(token, delete=False, n_days_ago=30, logging_off=False, \
     if not logging_off:
         handle_logging('files_to_delete.csv', files_to_delete)
 
-    if delete:
+    if do_actions:
         for slackfile in files_to_delete:
             delete_request(token, slackfile)
 
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser("Bulk archive/delete files older than 30 days")
     parser.add_argument('-t', '--token', type=str, help="Oauth token for Slack RESTfull API")
-    parser.add_argument('-d', '--delete', action='store_true', help="Confirm file archive/deletion (this cannot be undone)")
+    parser.add_argument('-d', '--do_actions', action='store_true', help="Confirm file archive/deletion (this cannot be undone)")
     parser.add_argument('-n', '--n_days_ago', type=int, help="Delete files older than n days ago (default = 30)", default=30)
     parser.add_argument('-l', '--logging_off', action='store_true', help="Turn off CSV logging of deleted files")
     parser.add_argument('-s', '--min_file_size', type=int, help="Min filesize (in bytes) a file must be to get deleted")
