@@ -232,7 +232,7 @@ def download_slack_file(file, token):
 def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
          min_file_size=None, channels_noarchive=""):
     """
-    Deletes lack files older than `n_days_ago`
+    Deletes Slack files older than `n_days_ago`
 
     By default files to be deleted are written to `files_to_act_on.csv`, if the delete
     flag is passed, then the files will also be deleted from slack.
