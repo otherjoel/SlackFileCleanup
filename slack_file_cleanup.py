@@ -7,6 +7,7 @@ from collections import namedtuple
 
 import requests
 import os
+import sys
 
 DEBUG = True
 MIN = 60
@@ -76,16 +77,16 @@ def delete_request(token, slackfile):
         if resp_delete.status_code == 429:
             import pdb; pdb.set_trace()
 
-    if resp_delete.ok and resp_delete.json()['ok']:
-        print("Deleted: %s (%s) uploaded by %s on %s has been deleted" % (slackfile.name,
-                                                                          slackfile.id,
-                                                                          slackfile.user,
-                                                                          slackfile.created))
-    else:
-        print("Failed: %s (%s) uploaded by %s on %s failed to delete" % (slackfile.name,
-                                                                         slackfile.id,
-                                                                         slackfile.user,
-                                                                         slackfile.created))
+        if resp_delete.ok and resp_delete.json()['ok']:
+            print("Deleted: %s (%s) uploaded by %s on %s has been deleted" % (slackfile.name,
+                                                                              slackfile.id,
+                                                                              slackfile.user,
+                                                                              slackfile.created))
+        else:
+            print("Failed: %s (%s) uploaded by %s on %s failed to delete" % (slackfile.name,
+                                                                             slackfile.id,
+                                                                             slackfile.user,
+                                                                             slackfile.created))
 
 def list_request(token, upperbound, page=1):
     # See https://api.slack.com/methods/files.list
@@ -106,7 +107,7 @@ def list_request(token, upperbound, page=1):
 
     if resp.ok and resp.json()['ok']:
         return resp.json()
-    print("%s: %s" % (resp.status_code, resp.body))
+    print("%s: %s" % (resp.status_code, resp.body), file=sys.stderr)
     return None  # TODO: raise error instead of handling None case?
 
 def other_list_request(token,type):
@@ -129,7 +130,7 @@ def other_list_request(token,type):
 
     if resp.ok and resp.json()['ok']:
         return resp.json()
-    print("%s: %s" % (resp.status_code, resp.text))
+    print("%s: %s" % (resp.status_code, resp.text), file=sys.stderr)
     return None  # TODO: raise error instead of handling None case?
 
 def filter_slack_files(slack_files, min_file_size):
@@ -244,7 +245,7 @@ def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
         print("min_file_size %s" % min_file_size)
         print("channels_noarchive %s" % channels_noarchive)
 
-    print_channel_list(token)
+        print_channel_list(token)
     
     files_to_act_on = get_files_to_act_on(token, n_days_ago, min_file_size)
     files_to_act_on = assign_file_actions(files_to_act_on, channels_noarchive)
