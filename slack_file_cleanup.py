@@ -107,7 +107,7 @@ def list_request(token, upperbound, page=1):
 
     if resp.ok and resp.json()['ok']:
         return resp.json()
-    print("%s: %s" % (resp.status_code, resp.body), file=sys.stderr)
+    print("%s: %s" % (resp.status_code, resp.text), file=sys.stderr)
     return None  # TODO: raise error instead of handling None case?
 
 def other_list_request(token,type):
