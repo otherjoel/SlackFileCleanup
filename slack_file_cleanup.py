@@ -19,7 +19,7 @@ SlackFile = namedtuple('SlackFile', SLACK_FILE_ATTRIBUTES)
 
 def filename_string(file):
     datestring = file.created.strftime("%Y-%m-%d")
-    file_ext = os.path.splitext(file.name)[1]
+    file_ext = file.filetype
     
     # e.g. 2017-07-04-joel_general+random_f633m1hfa.jpg
     return "%s-%s_%s_%s%s" % (datestring, 
