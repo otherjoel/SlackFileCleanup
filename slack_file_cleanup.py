@@ -2,7 +2,7 @@ import csv
 import time
 import calendar
 import datetime
-from urllib2 import Request, urlopen
+from urllib.request import Request, urlopen
 from collections import namedtuple
 
 import requests
@@ -35,14 +35,14 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 def get_slack_file(f, channels, users):
-    filename = f[u'name'].encode('utf-8')
-    url = f[u'url_private']
-    created = datetime.datetime.fromtimestamp(float(f[u'created']))
-    user = users[f[u'user']].encode('utf-8')
-    slack_id = f[u'id']
-    size = f[u'size'] # filesize in bytes
-    file_channels = '+'.join([channels[fc] for fc in f[u'channels']])
-    filetype = f[u'filetype']
+    filename = f['name']
+    url = f['url_private']
+    created = datetime.datetime.fromtimestamp(float(f['created']))
+    user = users[f['user']]
+    slack_id = f['id']
+    size = f['size'] # filesize in bytes
+    file_channels = '+'.join([channels[fc] for fc in f['channels']])
+    filetype = f['filetype']
     return SlackFile(id=slack_id,
                      name=filename,
                      permalink=url,
@@ -77,15 +77,15 @@ def delete_request(token, slackfile):
             import pdb; pdb.set_trace()
 
     if resp_delete.ok and resp_delete.json()['ok']:
-        print "Deleted: %s (%s) uploaded by %s on %s has been deleted" % (slackfile.name,
+        print("Deleted: %s (%s) uploaded by %s on %s has been deleted" % (slackfile.name,
                                                                           slackfile.id,
                                                                           slackfile.user,
-                                                                          slackfile.created)
+                                                                          slackfile.created))
     else:
-        print "Failed: %s (%s) uploaded by %s on %s failed to delete" % (slackfile.name,
+        print("Failed: %s (%s) uploaded by %s on %s failed to delete" % (slackfile.name,
                                                                          slackfile.id,
                                                                          slackfile.user,
-                                                                         slackfile.created)
+                                                                         slackfile.created))
 
 def list_request(token, upperbound, page=1):
     # See https://api.slack.com/methods/files.list
@@ -106,7 +106,7 @@ def list_request(token, upperbound, page=1):
 
     if resp.ok and resp.json()['ok']:
         return resp.json()
-    print "%s: %s" % (resp.status_code, resp.body)
+    print("%s: %s" % (resp.status_code, resp.body))
     return None  # TODO: raise error instead of handling None case?
 
 def other_list_request(token,type):
@@ -129,7 +129,7 @@ def other_list_request(token,type):
 
     if resp.ok and resp.json()['ok']:
         return resp.json()
-    print "%s: %s" % (resp.status_code, resp.body)
+    print("%s: %s" % (resp.status_code, resp.text))
     return None  # TODO: raise error instead of handling None case?
 
 def filter_slack_files(slack_files, min_file_size):
@@ -137,8 +137,8 @@ def filter_slack_files(slack_files, min_file_size):
         upload_total = 0
         for slackfile in slack_files:
             upload_total += slackfile.size
-            print "Filesize %s" % sizeof_fmt(slackfile.size)
-        print "Filesize %s" % sizeof_fmt(upload_total)
+            print("Filesize %s" % sizeof_fmt(slackfile.size))
+        print("Filesize %s" % sizeof_fmt(upload_total))
     return [slackfile for slackfile in slack_files if slackfile.size > min_file_size]
 
 def get_files_to_act_on(token, n_days_ago, min_file_size=None):
@@ -156,8 +156,8 @@ def get_files_to_act_on(token, n_days_ago, min_file_size=None):
         return[]
     
     # Construct dictionaries mapping user and channel IDs to their names
-    channels = { c[u'id'] : c[u'name'] for c in channel_resp['channels'] }
-    users = { user[u'id'] : user[u'name'] for user in user_resp['members'] }
+    channels = { c['id'] : c['name'] for c in channel_resp['channels'] }
+    users = { user['id'] : user['name'] for user in user_resp['members'] }
 
     slack_files = get_slack_files(resp['files'], channels, users)  # asdf
     if resp['paging']['pages'] > 1:
@@ -166,12 +166,12 @@ def get_files_to_act_on(token, n_days_ago, min_file_size=None):
             slack_files.extend(get_slack_files(_resp['files'], channels, users))
 
     if DEBUG:
-        print "Total files to delete %s" % len(slack_files)
+        print("Total files to delete %s" % len(slack_files))
     if min_file_size:
         slack_files = filter_slack_files(slack_files, min_file_size)
     
     if DEBUG:
-        print "Filtered files to delete %s" % len(slack_files)
+        print("Filtered files to delete %s" % len(slack_files))
 
     return slack_files
 
@@ -179,13 +179,13 @@ def get_files_to_act_on(token, n_days_ago, min_file_size=None):
 def print_channel_list(token):
     resp = other_list_request(token,'channels')
     if not resp:
-        print "No response!?"
+        print("No response!?")
     
-    slack_channels = { c[u'id'] : c[u'name'] for c in resp['channels'] }
-    # print "Next cursor: %s" % resp['response_metadata']['next_cursor']
+    slack_channels = { c['id'] : c['name'] for c in resp['channels'] }
+    # print("Next cursor: %s" % resp['response_metadata']['next_cursor'])
     
     for channel_id in slack_channels.keys():
-        print "[%s] %s" % (channel_id, slack_channels[channel_id])
+        print("[%s] %s" % (channel_id, slack_channels[channel_id]))
 
 def assign_file_actions(files, channels_noarchive):
     actionable_types = ['jpg', 'jpeg', 'png', 'mov', 'mp4']
@@ -238,11 +238,11 @@ def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
     """
 
     if DEBUG:
-        print "do_actions %s" % do_actions
-        print "n_days_ago %s" % n_days_ago
-        print "logging_off %s" % logging_off
-        print "min_file_size %s" % min_file_size
-        print "channels_noarchive %s" % channels_noarchive
+        print("do_actions %s" % do_actions)
+        print("n_days_ago %s" % n_days_ago)
+        print("logging_off %s" % logging_off)
+        print("min_file_size %s" % min_file_size)
+        print("channels_noarchive %s" % channels_noarchive)
 
     print_channel_list(token)
     
@@ -251,11 +251,11 @@ def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
 
     if DEBUG:
         for file in files_to_act_on:
-            print filename_string(file)
+            print(filename_string(file))
         
-        print "File to archive: %s" % count_action(files_to_act_on, 'archive')
-        print "Files to delete: %s" % count_action(files_to_act_on, 'delete')
-        print "Files to ignore: %s" % count_action(files_to_act_on, 'ignore')
+        print("File to archive: %s" % count_action(files_to_act_on, 'archive'))
+        print("Files to delete: %s" % count_action(files_to_act_on, 'delete'))
+        print("Files to ignore: %s" % count_action(files_to_act_on, 'ignore'))
         
     if not logging_off:
         handle_logging('files_to_act_on.csv', files_to_act_on)
