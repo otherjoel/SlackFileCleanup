@@ -220,6 +220,9 @@ def count_action(files, action):
 def download_slack_file(file, token):
     filename = os.path.join(DOWNLOAD_DIR, filename_string(file))
     
+    if DEBUG:
+        print("Trying to download %s" % filename)
+        
     with open(filename, 'wb') as handle:
         download_request = Request(file.permalink)
         download_request.add_header('Authorization', 'Bearer %s' % token)
@@ -227,6 +230,9 @@ def download_slack_file(file, token):
         download_response = urlopen(download_request)
         handle.write(download_response.read())
     
+    if DEBUG:
+        print("Download success: %s" % filename)
+        
     return True
 
 def main(token, do_actions=False, n_days_ago=30, logging_off=False, \
