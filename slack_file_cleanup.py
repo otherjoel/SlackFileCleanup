@@ -19,14 +19,13 @@ SlackFile = namedtuple('SlackFile', SLACK_FILE_ATTRIBUTES)
 
 def filename_string(file):
     datestring = file.created.strftime("%Y-%m-%d")
-    file_ext = file.filetype
     
     # e.g. 2017-07-04-joel_general+random_f633m1hfa.jpg
-    return "%s-%s_%s_%s%s" % (datestring, 
+    return "%s-%s_%s_%s.%s" % (datestring, 
                             file.user,
                             file.channels,
                             file.id.lower(),
-                            file_ext)
+                            file.filetype)
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
