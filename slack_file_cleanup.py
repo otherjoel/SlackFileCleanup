@@ -11,7 +11,8 @@ import sys
 
 DEBUG = True
 MIN = 60
-DOWNLOAD_DIR = 'archive'
+DOWNLOAD_DIR = os.path.join(os.path.abspath(__file__), 'archive')
+
 SLACK_FILE_ATTRIBUTES = ['id',       'name',     'permalink', 
                          'created',  'user',     'size', 
                          'channels', 'filetype', 'action']
