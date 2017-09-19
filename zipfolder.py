@@ -64,11 +64,13 @@ def zip_folder(folder_path, zipfile_prefix, rough_size_limit_mb=None):
     Returns
     -------
     archive_list : list of str
-        A list of all the zip files created by the function.
+        A list of all the zip files (with absolute paths) created by the function.
     """
     
     if not os.path.isdir(folder_path):
         raise FileNotFoundError("%s is not a folder!" % folder_path)
+    
+    path_to_here = os.path.abspath(os.path.dirname(__file__))
     
     if rough_size_limit_mb is not None:
         biggest_filesize, median_filesize = max_mean_filesizes(folder_path)
@@ -83,19 +85,20 @@ def zip_folder(folder_path, zipfile_prefix, rough_size_limit_mb=None):
         rough_size_limit_bytes = rough_size_limit_mb * 1000000
     else:
         zipfile_basename = zipfile_prefix
-        
-    archive_list = [ zipfile_basename + '.zip' ]
+    
+    archive_list = [ os.path.join(path_to_here, zipfile_basename + '.zip') ]
 
-    zip_archive = zipfile.ZipFile(zipfile_basename + '.zip', mode='w') 
+    zip_archive = zipfile.ZipFile(archive_list[0], mode='w') 
     compressed_total_bytes = 0
     
-    for file, is_last_file in tell_last(os.listdir(folder_path)):
-        full_file_path = os.path.join(folder_path, file)
+    for filename, is_last_file in tell_last(os.listdir(folder_path)):
+        full_file_path = os.path.join(folder_path, filename)
 
         if os.path.isfile(full_file_path):
-            zip_archive.write(full_file_path, compress_type=zipfile.ZIP_DEFLATED)
+            zip_archive.write(full_file_path, arcname=filename,
+                              compress_type=zipfile.ZIP_DEFLATED)
             
-            zipped_info = zip_archive.getinfo(full_file_path)
+            zipped_info = zip_archive.getinfo(filename)
             file_compressed = zipped_info.compress_size
             file_size = zipped_info.file_size
             
@@ -111,12 +114,13 @@ def zip_folder(folder_path, zipfile_prefix, rough_size_limit_mb=None):
                     zipfile_basename = zipfile_prefix + "_{0:0>3}".format(archive_split_count)
                 
                     zip_archive.close()
-                    zip_archive = zipfile.ZipFile(zipfile_basename + '.zip', mode='w')
+                    new_zip_name = os.path.join(path_to_here, zipfile_basename + '.zip')
+                    zip_archive = zipfile.ZipFile(new_zip_name, mode='w')
                     compressed_total_bytes = 0
-                    archive_list.append(zipfile_basename + '.zip')
+                    archive_list.append(new_zip_name)
 
                     if DEBUG:
-                        print("Created %s.zip" % zipfile_basename)
+                        print("Created %s" % new_zip_name)
                 
     zip_archive.close()
     
