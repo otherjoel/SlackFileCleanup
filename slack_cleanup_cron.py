@@ -9,7 +9,9 @@ import zipfolder
 AGE_LIMIT_DAYS = 180
 
 def make_markdown_message(file_list, url_prefix):
-    message_markdown = """To save space, files older than {age} days have been deleted from this Slack account. 
+    cutoff_date = datetime.now() - timedelta(days=AGE_LIMIT_DAYS)
+    
+    message_markdown = """To save space, files older than {:%B %d, %Y} have been deleted from this Slack account. 
     These old files have been saved in zip file{plural} which you can download using the link{plural}
     below.\n\n"""
     plural_suffix = 's' if len(file_list) > 1 else ''
@@ -20,7 +22,7 @@ def make_markdown_message(file_list, url_prefix):
         file_url = os.path.join(url_prefix, file_name)
         message_markdown += "* [`{url}`]({url}) ({size} MB)\n".format(url=file_url,size=size_mb)
     
-    return message_markdown.format(age=AGE_LIMIT_DAYS, plural=plural_suffix)
+    return message_markdown.format(cutoff_date, plural=plural_suffix)
 
 def main(token, folder, url_folder, notify_channel, do_actions=False):
     
