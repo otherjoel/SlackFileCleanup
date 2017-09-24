@@ -7,6 +7,7 @@ import slack_file_cleanup
 import zipfolder
 
 AGE_LIMIT_DAYS = 180
+NON_ARCHIVE_CHANNELS = "food,techsupport"
 
 def make_markdown_message(file_list, url_prefix):
     cutoff_date = datetime.now() - timedelta(days=AGE_LIMIT_DAYS)
@@ -26,9 +27,9 @@ def make_markdown_message(file_list, url_prefix):
 
 def main(token, folder, url_folder, notify_channel, do_actions=False):
     
-    #slack_file_cleanup.main(token, do_actions,
-    #                        n_days_ago=180,
-    #                        channels_noarchive="food,techsupport")
+    slack_file_cleanup.main(token, do_actions,
+                            n_days_ago=AGE_LIMIT_DAYS,
+                            channels_noarchive=NON_ARCHIVE_CHANNELS)
     
     today = datetime.now()
     last_month = date(today.year, today.month, 1) - timedelta(days=1)
