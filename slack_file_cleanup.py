@@ -11,7 +11,8 @@ import sys
 
 DEBUG = True
 MIN = 60
-DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'archive')
+DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                            "archive_{:%Y-%m-%d}".format(datetime.datetime.now()))
 
 SLACK_FILE_ATTRIBUTES = ['id',       'name',     'permalink', 
                          'created',  'user',     'size', 
@@ -287,5 +288,3 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--min_file_size', type=int, help="Min filesize (in bytes) a file must be to get deleted")
     parser.add_argument('-c', '--channels_noarchive', type=str, help="Channels to skip archiving (delete only)")
     main(**vars(parser.parse_args()))
-
-
