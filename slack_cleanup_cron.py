@@ -6,7 +6,7 @@ from slack_utils import markdown_post_request, chat_post_request
 import slack_file_cleanup
 import zipfolder
 
-AGE_LIMIT_DAYS = 180
+AGE_LIMIT_DAYS = 90
 NON_ARCHIVE_CHANNELS = "food,techsupport"
 
 def make_markdown_message(file_list, url_prefix):
