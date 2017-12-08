@@ -47,10 +47,13 @@ def main(token, folder, url_folder, notify_channel, do_actions=False):
             zip_list[index] = new_name
             
         # TODO : delete files in slack_file_cleanup.DOWNLOAD_DIR
-        
         msg = make_markdown_message(zip_list, url_prefix=url_folder)
         markdown_post_request(token, channels=notify_channel, title=post_title, content=msg)
         chat_post_request(token, channel=notify_channel, message='@channel: Latest archives are ready!')
+    else:
+        msg = make_markdown_message([], url_prefix=url_folder)
+        print("Slack message for {chan}:".format(chan=notify_channel))
+        print(msg)
 
 if __name__ == '__main__':
     import argparse
