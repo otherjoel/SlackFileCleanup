@@ -33,14 +33,13 @@ def main(token, folder, url_folder, notify_channel, do_actions=False):
     
     today = datetime.now()
     last_month = date(today.year, today.month, 1) - timedelta(days=1)
-    date_string = "{:%Y-%m}".format(today)
-    post_title = "{:%B} Archives".format(last_month)
+    date_string = "{:%Y-%m-%d}".format(today)
+    post_title = "{td} Archives".format(td=date_string)
     
     if do_actions:
         zip_list = zipfolder.zip_folder(slack_file_cleanup.DOWNLOAD_DIR,
                                         zipfile_prefix=date_string,
                                         rough_size_limit_mb=500)
-        # zip_list = ['2017-09_001.zip', '2017-09_002.zip', '2017-09_003.zip']
         
         for index, zfile in enumerate(zip_list):
             new_name = os.path.join(folder, os.path.basename(zfile))
