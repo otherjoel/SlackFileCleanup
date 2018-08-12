@@ -7,7 +7,7 @@ import slack_file_cleanup
 import zipfolder
 
 AGE_LIMIT_DAYS = 90
-NON_ARCHIVE_CHANNELS = "food,techsupport"
+NON_ARCHIVE_CHANNELS = "food,techsupport,jokes_puns_comics"
 
 def make_markdown_message(file_list, url_prefix):
     cutoff_date = datetime.now() - timedelta(days=AGE_LIMIT_DAYS)
